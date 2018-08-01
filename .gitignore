@@ -377,10 +377,11 @@ vignettes/*.pdf
 
 # track these files, if they exist
 !.editorconfig
+!.env.example
+!.flake8
 !.gitattributes
 !.gitignore
 !.github/
 !.gitlab/
 !.style.yapf
 !.travis.yml
-!.env.example
