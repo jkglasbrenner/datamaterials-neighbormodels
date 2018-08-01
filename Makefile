@@ -11,7 +11,7 @@ CONDA_ENV_ACTIVATE	=	$(CONDA) activate
 
 ALL_FILES			=
 
-CLEAN_FILES	=	*_cache/
+CLEAN_FILES			=	*_cache/
 
 define cleanup
 	-$(RM) -rf $(CLEAN_FILES)
