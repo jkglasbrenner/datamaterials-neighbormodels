@@ -62,7 +62,7 @@ def set_sublattice_parameters(
     """Applies unique sublattice labels to sites matching the specified atomic species.
 
     :param cell_structure: A pymatgen ``Structure`` object.
-    :species: An atomic specie or list of atomic species all present in
+    :param species: An atomic specie or list of atomic species all present in
         ``cell_structure``.
     """
     if isinstance(species, str):
@@ -87,7 +87,7 @@ def enumerate_sublattices(
     a list.
 
     :param cell_structure: A pymatgen ``Structure`` object.
-    :species: A list of atomic species.
+    :param species: A list of atomic species.
     :return: A list of unique sublattice labels.
     """
     species_counter: Counter = Counter()
