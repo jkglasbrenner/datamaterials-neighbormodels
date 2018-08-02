@@ -55,52 +55,55 @@ def from_file(structure_file: str) -> Structure:
     return cell_structure
 
 
-def set_sublattice_parameters(
+def label_subspecies(
     cell_structure: Structure,
-    species: Union[List[str], str],
+    site_indices: Union[List[int], int] = [],
 ) -> None:
-    """Applies unique sublattice labels to sites matching the specified atomic species.
+    """Toggles subspecies grouping on the specified site indices. Sites not found in
+    the list are labeled with the atomic species name.
 
     :param cell_structure: A pymatgen ``Structure`` object.
-    :param species: An atomic specie or list of atomic species all present in
-        ``cell_structure``.
+    :param site_indices: A site index or list of site indices all present in
+        ``cell_structure`` (default []).
     """
-    if isinstance(species, str):
-        species = [species]
+    if isinstance(site_indices, int):
+        site_indices = [site_indices]
 
-    site_properties_sublattices: List[Union[str, None]] = enumerate_sublattices(
+    site_properties_subspecies: List[str] = get_subspecies_labels(
         cell_structure=cell_structure.copy(),
-        species=species,
+        site_indices=site_indices,
     )
 
     cell_structure.add_site_property(
-        property_name="sublattice",
-        values=site_properties_sublattices,
+        property_name="subspecie",
+        values=site_properties_subspecies,
     )
 
 
-def enumerate_sublattices(
+def get_subspecies_labels(
     cell_structure: Structure,
-    species: List[str],
+    site_indices: List[int],
 ) -> List[Union[str, None]]:
-    """Enumerates sublattice labels to sites matching the specified atomic species into
-    a list.
+    """Generates subspecies labels using the provided site indices. Sites not found in
+    the list are labeled with the atomic species name.
 
     :param cell_structure: A pymatgen ``Structure`` object.
-    :param species: A list of atomic species.
-    :return: A list of unique sublattice labels.
+    :param site_indices: A list of site indices.
+    :return: A list of subspecies labels.
     """
     species_counter: Counter = Counter()
-    site_properties_sublattices: List[Union[str, None]] = []
+    site_properties_subspecies: List[str] = []
 
-    for site in cell_structure:
-        specie: str = site.species_string
+    for site_index, site in enumerate(cell_structure):
+        specie_name: str = site.specie.name
 
-        if specie in species:
-            species_counter[specie] += 1
-            site_properties_sublattices.append(f"{specie}{species_counter[specie]}")
+        if site_index in site_indices:
+            species_counter[specie_name] += 1
+            site_properties_subspecies.append(
+                f"{specie_name}{species_counter[specie_name]}"
+            )
 
         else:
-            site_properties_sublattices.append(None)
+            site_properties_subspecies.append(f"{specie_name}")
 
-    return site_properties_sublattices
+    return site_properties_subspecies
