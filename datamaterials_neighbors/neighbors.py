@@ -8,6 +8,8 @@ from pandas import DataFrame, IntervalIndex, Series
 from pandas.core.groupby import DataFrameGroupBy
 from pymatgen import PeriodicSite, Structure
 
+from datamaterials_neighbors.structure import label_subspecies
+
 Neighbor = Tuple[PeriodicSite, float, int]
 SiteNeighbors = List[Optional[Neighbor]]
 AllNeighborDistances = List[SiteNeighbors]
@@ -28,11 +30,15 @@ def count_neighbors_grouped_by_site_index_pairs_and_distance(
     :return: A pandas ``DataFrame`` of neighbor counts aggregated over site-index pairs
         and separation distances.
     """
+    cell_structure = cell_structure.copy()
+    add_subspecie_labels_if_missing(cell_structure=cell_structure)
+
     neighbor_distances_df: DataFrame = get_neighbor_distances_data_frame(
         cell_structure=cell_structure,
         r=r,
         unordered_pairs=unordered_pairs,
     )
+
     grouped_distances: DataFrameGroupBy = \
         group_neighbors_within_site_index_pairs_by_distance(
             neighbor_distances_df=neighbor_distances_df,
@@ -217,3 +223,16 @@ def append_site_i_neighbor_distance_data(
         neighbor_distances["species_i"].append(species_pair[0])
         neighbor_distances["species_j"].append(species_pair[1])
         neighbor_distances["distance_ij"].append(site_j[1])
+
+
+def add_subspecie_labels_if_missing(cell_structure: Structure) -> None:
+    """Checks if ``cell_structure`` has the subspecie site property. If not, then
+    label each site using the site's atomic specie name.
+
+    :param cell_structure: A pymatgen ``Structure`` object.
+    """
+    if "subspecie" not in cell_structure.site_properties:
+        label_subspecies(
+            cell_structure=cell_structure,
+            site_indices=[],
+        )
