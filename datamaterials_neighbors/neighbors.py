@@ -50,8 +50,8 @@ def count_neighbors_grouped_by_site_index_pairs_and_distance(
             .loc[:, "distance_ij"]
             .loc[:, ["max", "count"]]
             .reset_index()
-            .loc[:, ["i", "j", "subspecies_i", "subspecies_j", "max", "count"]]
-            .rename(columns={"max": "distance_ij", "count": "n"})
+            .loc[:, ["i", "j", "subspecies_i", "subspecies_j", "distance_ij", "max", "count"]]
+            .rename(columns={"distance_ij": "distance_bin", "max": "distance_ij", "count": "n"})
             .assign(n=lambda x: pd.to_numeric(x["n"], downcast='integer'))
     )  # yapf: disable
 
