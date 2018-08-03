@@ -8,6 +8,45 @@ from pandas import DataFrame
 MagneticPatterns = Dict[str, Union[int, float]]
 
 
+def get_interaction_coefficients(
+    neighbors_df: DataFrame,
+    pairwise_interactions_df: DataFrame,
+    bin_to_distance_map: DataFrame,
+    num_sites: int,
+) -> DataFrame:
+    """Computes interaction coefficients using the neighbors and interactions data
+    frames.
+
+    :param neighbors_df: A pandas ``DataFrame`` of neighbor counts aggregated over
+        site-index pairs and separation distances.
+    :param pairwise_interactions_df: A pandas ``DataFrame`` of pairwise interaction terms.
+    :param bin_to_distance_map:
+    :param num_sites:
+    :return: A pandas ``DataFrame`` of interaction coefficients.
+    """
+    coefficients_df: DataFrame = (
+        neighbors_df
+            .merge(pairwise_interactions_df, on=["i", "j"])
+            .sort_values("pattern")
+            .assign(coefficient=lambda x: x["interaction"] * x["n"])
+            .assign(rank=lambda x: x.groupby(["pattern", "subspecies_i",
+                                              "subspecies_j"])
+                                    .apply(lambda x: x.loc[:, ["distance_bin"]]
+                                                      .rank(method="dense")))
+            .assign(rank=lambda x: pd.to_numeric(x["rank"], downcast="integer"))
+            .groupby(["pattern", "distance_bin", "rank", "subspecies_i", "subspecies_j"])
+            .apply(lambda x: np.sum(x[["coefficient"]]) / num_sites)
+            .reset_index()
+            .merge(bin_to_distance_map, on=["distance_bin"])
+            .sort_values(by=["pattern", "subspecies_i", "subspecies_j",
+                             "distance_bin"])
+            .loc[:, ["pattern", "subspecies_i", "subspecies_j", "rank",
+                     "distance_ij", "coefficient"]]
+    )  # yapf: disable
+
+    return coefficients_df
+
+
 def build_magnetic_patterns_data_frame(
     magnetic_patterns: MagneticPatterns,
 ) -> DataFrame:
@@ -31,9 +70,7 @@ def build_magnetic_patterns_data_frame(
     return magnetic_patterns_df
 
 
-def get_pairwise_interactions(
-    magnetic_patterns_df: DataFrame,
-) -> DataFrame:
+def get_pairwise_interactions(magnetic_patterns_df: DataFrame, ) -> DataFrame:
     """Builds data frame of pairwise interaction terms.
 
     :param magnetic_patterns_df: A pandas ``DataFrame`` labeling and specifying
@@ -52,15 +89,3 @@ def get_pairwise_interactions(
 
     return pairwise_interactions_df
 
-
-def get_interaction_coefficients(neighbors, pairwise_interactions_df):
-    coefficients_df: DataFrame = (
-        neighbors
-            .merge(pairwise_interactions_df, on=["i", "j"])
-            .sort_values("pattern")
-            .assign(interaction=lambda x: x["interaction"] * x["n"])
-            .groupby(["pattern", "distance_bin", "subspecies_i", "subspecies_j"])
-            .apply(lambda x: np.sum(x[["interaction"]]))
-    )  # yapf: disable
-
-    return coefficients_df
