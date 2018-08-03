@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from pandas import DataFrame, IntervalIndex, Series
+from pandas import Categorical, DataFrame, IntervalIndex, Series
 from pandas.core.groupby import DataFrameGroupBy
 from pymatgen import PeriodicSite, Structure
 
@@ -20,7 +20,7 @@ def count_neighbors_grouped_by_site_index_pairs_and_distance(
     cell_structure: Structure,
     r: float,
     unordered_pairs: bool = True,
-) -> DataFrame:
+) -> Tuple[DataFrame, DataFrame]:
     """Builds a data frame containing neighbor counts grouped over site-index pairs
     and separation distances.
 
@@ -39,7 +39,9 @@ def count_neighbors_grouped_by_site_index_pairs_and_distance(
         unordered_pairs=unordered_pairs,
     )
 
-    grouped_distances: DataFrameGroupBy = \
+    grouped_distances: DataFrameGroupBy
+    bin_to_distance_map: DataFrame
+    grouped_distances, bin_to_distance_map = \
         group_neighbors_within_site_index_pairs_by_distance(
             neighbor_distances_df=neighbor_distances_df,
         )
@@ -50,17 +52,17 @@ def count_neighbors_grouped_by_site_index_pairs_and_distance(
             .loc[:, "distance_ij"]
             .loc[:, ["max", "count"]]
             .reset_index()
-            .loc[:, ["i", "j", "subspecies_i", "subspecies_j", "distance_ij", "max", "count"]]
-            .rename(columns={"distance_ij": "distance_bin", "max": "distance_ij", "count": "n"})
+            .loc[:, ["i", "j", "subspecies_i", "subspecies_j", "distance_ij", "count"]]
+            .rename(columns={"distance_ij": "distance_bin", "count": "n"})
             .assign(n=lambda x: pd.to_numeric(x["n"], downcast='integer'))
     )  # yapf: disable
 
-    return distances_summary
+    return distances_summary, bin_to_distance_map
 
 
 def group_neighbors_within_site_index_pairs_by_distance(
     neighbor_distances_df: DataFrame,
-) -> DataFrameGroupBy:
+) -> Tuple[DataFrameGroupBy, DataFrame]:
     """Iterate over all sites, grouping by site-index pairs and binning by distance.
 
     :param neighbor_distances_df: A pandas ``DataFrame`` containing all pairwise
@@ -75,18 +77,28 @@ def group_neighbors_within_site_index_pairs_by_distance(
         unique_distances=unique_distances
     )
 
+    bin_to_distance_map: DataFrame = DataFrame(
+        data={
+            "distance_bin": Categorical(bin_intervals, ordered=True),
+            "distance_ij": unique_distances,
+        }
+    )
+
     binned_distances: Series = pd.cut(
         x=neighbor_distances_df["distance_ij"],
         bins=bin_intervals,
     )
 
-    return neighbor_distances_df.groupby([
-        "i",
-        "j",
-        "subspecies_i",
-        "subspecies_j",
-        binned_distances,
-    ])
+    return (
+        neighbor_distances_df.groupby([
+            "i",
+            "j",
+            "subspecies_i",
+            "subspecies_j",
+            binned_distances,
+        ]),
+        bin_to_distance_map,
+    )
 
 
 def find_unique_distances(distance_ij: Series) -> np.ndarray:
