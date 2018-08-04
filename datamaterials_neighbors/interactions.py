@@ -41,15 +41,28 @@ def build_model(
         magnetic_patterns=magnetic_patterns
     )
 
-    model_coefficients_df: DataFrame = magnetic_patterns_df \
+    return magnetic_patterns_df \
         .pipe(compute_interaction_signs) \
         .pipe(compute_model_coefficients, neighbor_data=neighbor_data) \
-        .pivot(index="pattern", columns="parameter_name", values="coefficient") \
-        .reset_index()
+        .pipe(spread_parameter_name_column)
 
-    model_coefficients_df.columns.name = ""
 
-    return model_coefficients_df
+def compute_interaction_signs(magnetic_patterns_df: DataFrame) -> DataFrame:
+    """Computes the signs of the pairwise interactions for the magnetic model.
+
+    :param magnetic_patterns_df: A pandas ``DataFrame`` labeling and specifying
+        magnetic patterns.
+    :return: A pandas ``DataFrame`` of the signs of the pairwise interactions.
+    """
+    return magnetic_patterns_df \
+        .merge(right=magnetic_patterns_df,
+               how="inner",
+               on="pattern",
+               suffixes=("_i", "_j")) \
+        .rename(columns={"site_i": "i", "site_j": "j"}) \
+        .loc[:, ["pattern", "i", "j", "spin_i", "spin_j"]] \
+        .assign(sign=lambda x: x["spin_i"] * x["spin_j"]) \
+        .query("i <= j")
 
 
 def compute_model_coefficients(
@@ -88,6 +101,15 @@ def multiply_interaction_signs_and_neighbor_count(
     data_frame: DataFrame,
     interaction_signs_df: DataFrame,
 ) -> DataFrame:
+    """Adds coefficient column to data frame. Compatible with the pandas ``pipe()``
+    method.
+
+    :param data_frame: A pandas ``DataFrame`` of neighbor counts aggregated over
+        site-index pairs and separation distances.
+    :param interaction_signs_df: A pandas ``DataFrame`` of the signs of the pairwise
+        interactions.
+    :return: A copy of input ``data_frame`` with the coefficient column added.
+    """
     return data_frame \
         .merge(interaction_signs_df, on=["i", "j"]) \
         .sort_values("pattern") \
@@ -95,6 +117,13 @@ def multiply_interaction_signs_and_neighbor_count(
 
 
 def group_subspecie_pairs_and_rank_by_distance(data_frame: DataFrame) -> DataFrame:
+    """Adds rank column to data frame that sorts subspecie pairs by neighbor distance.
+    Compatible with the pandas ``pipe()`` method.
+
+    :param data_frame: A pandas ``DataFrame`` of neighbor counts aggregated over
+        site-index pairs and separation distances.
+    :return: A copy of input ``data_frame`` with the rank column added.
+    """
     df: DataFrame = data_frame.copy()
     df["rank"] = df \
         .groupby(["subspecies_i", "subspecies_j"]) \
@@ -105,6 +134,13 @@ def group_subspecie_pairs_and_rank_by_distance(data_frame: DataFrame) -> DataFra
 
 
 def label_interaction_parameters(data_frame: DataFrame) -> DataFrame:
+    """Adds parameter_names column to data frame that labels the unique parameters
+    of the interaction model. Compatible with the pandas ``pipe()`` method.
+
+    :param data_frame: A pandas ``DataFrame`` of neighbor counts aggregated over
+        site-index pairs and separation distances ranked by subspecies pairs.
+    :return: A copy of input ``data_frame`` with the parameter_name column added.
+    """
     df = data_frame.copy()
 
     parameter_names: Series = "J" + df["rank"].astype(str)
@@ -124,6 +160,16 @@ def aggregate_interaction_coefficients(
     data_frame: DataFrame,
     num_sites: int,
 ) -> DataFrame:
+    """Aggregates interaction coefficients by summing them within groups defined by
+    the magnetic patterns and interaction parametres. Compatible with the pandas
+    ``pipe()`` method.
+
+    :param data_frame: A pandas ``DataFrame`` of interaction coefficients and parameters
+        grouped by magnetic patterns, subspecies pairs, and neighbor distances.
+    :param num_sites: The total number of magnetic sites in the unit cell.
+    :return: A data frame where the interaction coefficients were summed within
+        groups defined by the magnetic patterns and interaction parameters.
+    """
     return data_frame \
         .groupby(["pattern", "parameter_name"]) \
         .apply(lambda x: np.sum(x[["coefficient"]]) / num_sites) \
@@ -153,19 +199,18 @@ def build_magnetic_patterns_data_frame(
         .loc[:, ["pattern", "site", "spin"]]
 
 
-def compute_interaction_signs(magnetic_patterns_df: DataFrame) -> DataFrame:
-    """Computes the signs of the pairwise interactions for the magnetic model.
+def spread_parameter_name_column(data_frame: DataFrame) -> DataFrame:
+    """Spreads interaction parameter names into their own columns with the interaction
+    coefficient as rows. Compatible with the pandas ``pipe()`` method.
 
-    :param magnetic_patterns_df: A pandas ``DataFrame`` labeling and specifying
-        magnetic patterns.
-    :return: A pandas ``DataFrame`` of the signs of the pairwise interactions.
+    :param data_frame: A data frame where the interaction coefficients were summed
+        within groups defined by the magnetic patterns and interaction parameters.
+    :return: A data frame with the parameter names pivoted into their own columns.
     """
-    return magnetic_patterns_df \
-        .merge(right=magnetic_patterns_df,
-               how="inner",
-               on="pattern",
-               suffixes=("_i", "_j")) \
-        .rename(columns={"site_i": "i", "site_j": "j"}) \
-        .loc[:, ["pattern", "i", "j", "spin_i", "spin_j"]] \
-        .assign(sign=lambda x: x["spin_i"] * x["spin_j"]) \
-        .query("i <= j")
+    df: DataFrame = data_frame \
+        .pivot(index="pattern", columns="parameter_name", values="coefficient") \
+        .reset_index()
+
+    df.columns.name = ""
+
+    return df
