@@ -2,7 +2,7 @@ neighbormodels documentation
 ============================
 
 .. include:: ../README.rst
-   :start-line: 2
+   :start-line: 6
 
 
 API
