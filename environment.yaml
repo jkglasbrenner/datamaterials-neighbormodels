@@ -28,6 +28,7 @@ dependencies:
   - ruamel_yaml=0.15.42
   - scipy=1.1.0
   - six=1.11.0
+  - sphinx=1.7.6
   - sympy=1.2
   - tabulate=0.8.2
   - werkzeug=0.14.1

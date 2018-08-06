@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 
 import setuptools
+from sphinx.setup_command import BuildDoc
+
+name = "datamaterials_neighbors"
+version = "0.0"
+release = "0.0.1"
 
 setuptools.setup(
-    name="datamaterials_neighbors",
+    name=name,
     author="James K. Glasbrenner",
     author_email="jglasbr2@gmu.edu",
     license="MIT",
-    version="0.0.1",
+    version=release,
     description=(
         "Counts the number of pairwise neighbors in a lattice within "
         "and between sub-lattices."
@@ -21,4 +26,14 @@ setuptools.setup(
         "pandas",
         "pymatgen",
     ],
+    cmdclass={"build_sphinx": BuildDoc},
+    command_options={
+        "build_sphinx": {
+            "project": ("setup.py", name),
+            "version": ("setup.py", version),
+            "release": ("setup.py", release),
+            "source_dir": ("setup.py", "docs"),
+            "build_dir": ("setup.py", "docs/_build"),
+        }
+    },
 )
