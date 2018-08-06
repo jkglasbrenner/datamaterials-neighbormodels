@@ -383,5 +383,6 @@ vignettes/*.pdf
 !.gitignore
 !.github/
 !.gitlab/
+!.readthedocs.yml
 !.style.yapf
 !.travis.yml
