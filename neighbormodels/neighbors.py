@@ -8,7 +8,7 @@ from pandas import Categorical, DataFrame, IntervalIndex, Series
 from pandas.core.groupby import DataFrameGroupBy
 from pymatgen import PeriodicSite, Structure
 
-from datamaterials_neighbors.structure import label_subspecies
+from neighbormodels.structure import label_subspecies
 
 Neighbor = Tuple[PeriodicSite, float, int]
 SiteNeighbors = List[Optional[Neighbor]]

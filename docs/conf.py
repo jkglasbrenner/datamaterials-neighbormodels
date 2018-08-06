@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'datamaterials_neighbors'
+project = 'neighbormodels'
 copyright = '2018, James K. Glasbrenner'
 author = 'James K. Glasbrenner'
 
@@ -108,7 +108,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'datamaterials_neighborsdoc'
+htmlhelp_basename = 'neighbormodels'
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -135,8 +135,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (
-        master_doc, 'datamaterials_neighbors.tex',
-        'datamaterials\\_neighbors Documentation', 'James K. Glasbrenner', 'manual'
+        master_doc, 'neighbormodels.tex', 'neighbormodels Documentation',
+        'James K. Glasbrenner', 'manual'
     ),
 ]
 
@@ -144,10 +144,10 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(
-    master_doc, 'datamaterials_neighbors', 'datamaterials_neighbors Documentation',
-    [author], 1
-)]
+man_pages = [
+    (master_doc, 'neighbormodels', 'neighbormodels Documentation',
+     [author], 1)
+]
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -156,9 +156,10 @@ man_pages = [(
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc, 'datamaterials_neighbors', 'datamaterials_neighbors Documentation',
-        author, 'datamaterials_neighbors', 'One line description of project.',
-        'Miscellaneous'
+        master_doc, 'neighbormodels', 'neighbormodels Documentation', author,
+        'neighbormodels',
+        'A tool for building crystal lattice models with distance-dependent '
+        'neighbor interactions.', 'Miscellaneous'
     ),
 ]
 

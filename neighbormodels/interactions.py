@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
 
-from datamaterials_neighbors.neighbors import NeighborData
+from neighbormodels.neighbors import NeighborData
 
 MagneticPatterns = Dict[str, Union[int, float]]
 

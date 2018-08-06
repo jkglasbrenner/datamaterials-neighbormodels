@@ -1,6 +1,6 @@
 SHELL				=	/bin/sh
 
-PROJNAME			=	datamaterials_neighbors
+PROJNAME			=	neighbormodels
 
 RM					=	rm
 ECHO				=	echo
@@ -9,8 +9,6 @@ FIND				=	find
 
 CONDA				=	conda
 CONDA_ENV_FILE		=	environment.yaml
-CONDA_ENV_NAME		=	crystal-structures
-CONDA_ENV_ACTIVATE	=	$(CONDA) activate
 
 PYTHON				=	/usr/bin/env python
 PYTHON_SETUP		=	setup.py

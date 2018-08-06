@@ -1,7 +1,7 @@
-datamaterials_neighbors
-=======================
+neighbormodels
+==============
 
 .. toctree::
    :maxdepth: 4
 
-   datamaterials_neighbors
+   neighbormodels

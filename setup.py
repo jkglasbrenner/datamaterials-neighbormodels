@@ -3,7 +3,7 @@
 import setuptools
 from sphinx.setup_command import BuildDoc
 
-name = "datamaterials_neighbors"
+name = "neighbormodels"
 version = "0.0"
 release = "0.0.1"
 
@@ -14,8 +14,8 @@ setuptools.setup(
     license="MIT",
     version=release,
     description=(
-        "Counts the number of pairwise neighbors in a lattice within "
-        "and between sub-lattices."
+        "A tool for building crystal lattice models with distance-dependent "
+        "neighbor interactions."
     ),
     python_requires=">=3.6",
     packages=setuptools.find_packages("src"),

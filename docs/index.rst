@@ -1,43 +1,51 @@
-.. datamaterials_neighbors documentation master file, created by
-   sphinx-quickstart on Sat Aug  4 18:54:09 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+neighbormodels documentation
+============================
 
-Welcome to datamaterials_neighbors's documentation!
-===================================================
+.. include:: ../README.rst
+   :start-line: 2
 
-Structure
----------
 
-.. automodule:: datamaterials_neighbors.structure
-   
-   .. rubric:: Primary methods
+API
+===
+
+
+Modules
+-------
+
+.. toctree::
+
+   modules
+
+
+``interactions``
+^^^^^^^^^^^^^^^^
+
+.. automodule:: neighbormodels.interactions
+
+   .. rubric:: Primary method
 
    .. autosummary::
-
-      from_file
-      from_parameters
-
-   .. autosummary::
    
+      build_model
+
    .. rubric:: Functions
 
    .. autosummary::
    
-      get_subspecies_labels
-      label_subspecies
-   
-   .. rubric:: Classes
+      aggregate_interaction_coefficients
+      build_magnetic_patterns_data_frame
+      compute_interaction_signs
+      compute_model_coefficients
+      group_subspecie_pairs_and_rank_by_distance
+      label_interaction_parameters
+      multiply_interaction_signs_and_neighbor_count
+      spread_parameter_name_column
 
-   .. autosummary::
-   
-      StructureParameters
-   
 
-Neighbors
----------
+``neighbors``
+^^^^^^^^^^^^^
 
-.. automodule:: datamaterials_neighbors.neighbors
+.. automodule:: neighbormodels.neighbors
   
    .. rubric:: Primary method
 
@@ -66,30 +74,33 @@ Neighbors
       NeighborData
 
 
-Interactions
-------------
+``structure``
+^^^^^^^^^^^^^
 
-.. automodule:: datamaterials_neighbors.interactions
+.. automodule:: neighbormodels.structure
+   
+   .. rubric:: Primary methods
 
-   .. rubric:: Primary method
+   .. autosummary::
+
+      from_file
+      from_parameters
 
    .. autosummary::
    
-      build_model
-
    .. rubric:: Functions
 
    .. autosummary::
    
-      aggregate_interaction_coefficients
-      build_magnetic_patterns_data_frame
-      compute_interaction_signs
-      compute_model_coefficients
-      group_subspecie_pairs_and_rank_by_distance
-      label_interaction_parameters
-      multiply_interaction_signs_and_neighbor_count
-      spread_parameter_name_column
+      get_subspecies_labels
+      label_subspecies
+   
+   .. rubric:: Classes
 
+   .. autosummary::
+   
+      StructureParameters
+   
 
 Indices and tables
 ==================

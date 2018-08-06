@@ -1,5 +1,5 @@
 ---
-name: datamaterials-neighbors
+name: neighbormodels
 channels:
   - defaults
   - conda-forge
