@@ -349,6 +349,7 @@ local_settings.py
 nosetests.xml
 pip-log.txt
 pip-delete-this-directory.txt
+*.egg-info/
 __pycache__/
 develop-eggs/
 docs/_build/
