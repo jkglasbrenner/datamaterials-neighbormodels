@@ -1,20 +1,56 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from collections import OrderedDict
 
 import setuptools
+from sphinx.setup_command import BuildDoc
+
+with open('README.rst', 'rt', encoding='utf8') as f:
+    readme = f.read()
+
+name = "neighbormodels"
+version = "0.1"
+release = "0.1.0"
 
 setuptools.setup(
-    name="datamaterials_neighbors",
+    name=name,
     author="James K. Glasbrenner",
     author_email="jglasbr2@gmu.edu",
     license="MIT",
-    version="0.0.1",
-    description=("Counts the number of pairwise neighbors in a lattice within "
-                 "and between sub-lattices."),
-    python_requires="~=2.7.0, >=3.5",
-    packages=setuptools.find_packages("src"),
-    package_dir={"": "src"},
+    version=release,
+    url="https://github.com/jkglasbrenner/datamaterials-neighbormodels",
+    project_urls=OrderedDict((
+        ("Documentation", "https://neighbormodels.readthedocs.io"),
+        ("Code", "https://github.com/jkglasbrenner/datamaterials-neighbormodels"),
+    )),
+    description=(
+        "A tool for building crystal lattice models with distance-dependent "
+        "neighbor interactions."
+    ),
+    long_description=readme,
+    python_requires=">=3.6",
+    packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=[
-        "pymatgen >= 2018.4.20",
+        "numpy",
+        "pandas",
+        "pymatgen",
     ],
+    extras_require={
+        "docs": [
+            "sphinx",
+            "sphinx_rtd_theme",
+        ],
+    },
+    cmdclass={"build_sphinx": BuildDoc},
+    command_options={
+        "build_sphinx": {
+            "project": ("setup.py", name),
+            "version": ("setup.py", version),
+            "release": ("setup.py", release),
+            "source_dir": ("setup.py", "docs"),
+            "build_dir": ("setup.py", "docs/_build"),
+        }
+    },
 )

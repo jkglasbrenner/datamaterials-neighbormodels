@@ -349,6 +349,7 @@ local_settings.py
 nosetests.xml
 pip-log.txt
 pip-delete-this-directory.txt
+*.egg-info/
 __pycache__/
 develop-eggs/
 docs/_build/
@@ -377,10 +378,12 @@ vignettes/*.pdf
 
 # track these files, if they exist
 !.editorconfig
+!.env.example
+!.flake8
 !.gitattributes
 !.gitignore
 !.github/
 !.gitlab/
+!.readthedocs.yml
 !.style.yapf
 !.travis.yml
-!.env.example

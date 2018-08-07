@@ -1,5 +1,5 @@
 ---
-name: datamaterials-neighbors
+name: neighbormodels
 channels:
   - defaults
   - conda-forge
@@ -28,6 +28,8 @@ dependencies:
   - ruamel_yaml=0.15.42
   - scipy=1.1.0
   - six=1.11.0
+  - sphinx=1.7.6
+  - sphinx_rtd_theme=0.4.1
   - sympy=1.2
   - tabulate=0.8.2
   - werkzeug=0.14.1
@@ -38,6 +40,7 @@ dependencies:
       - monty==1.0.3
       - pybtex==0.21
       - pycodestyle==2.3.1
+      - PyHamcrest==1.9.0
       - pymatgen==2018.7.23
       - pytest==3.7.0
       - rope==0.10.7
