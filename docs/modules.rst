@@ -1,7 +1,9 @@
-neighbormodels
-==============
+Modules
+=======
 
 .. toctree::
    :maxdepth: 4
 
-   neighbormodels
+   neighbormodels.interactions
+   neighbormodels.neighbors
+   neighbormodels.structure

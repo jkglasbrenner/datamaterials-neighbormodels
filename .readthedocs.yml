@@ -4,9 +4,9 @@ build:
 
 python:
   version: 3.6
-
-conda:
-  file: environment.yaml
+  setup_py_install: true
+  extra_requirements:
+    - docs
 
 formats: []
 ...

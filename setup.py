@@ -40,6 +40,7 @@ setuptools.setup(
     extras_require={
         "docs": [
             "sphinx",
+            "sphinx_rtd_theme",
         ],
     },
     cmdclass={"build_sphinx": BuildDoc},
