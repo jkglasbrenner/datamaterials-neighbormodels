@@ -23,8 +23,7 @@ def from_parameters(structure_parameters: StructureParameters) -> Structure:
     :return: A pymatgen ``Structure`` object.
     """
     cell_lattice: Lattice = Lattice.from_lengths_and_angles(
-        abc=structure_parameters.abc,
-        ang=structure_parameters.ang,
+        abc=structure_parameters.abc, ang=structure_parameters.ang
     )
 
     cell_structure: Structure = Structure.from_spacegroup(
@@ -46,18 +45,14 @@ def from_file(structure_file: str) -> Structure:
     :return: A pymatgen ``Structure`` object.
     """
     cell_structure: Structure = Structure.from_file(
-        filename=structure_file,
-        primitive=False,
-        sort=False,
-        merge_tol=0.01,
+        filename=structure_file, primitive=False, sort=False, merge_tol=0.01
     )
 
     return cell_structure
 
 
 def label_subspecies(
-    cell_structure: Structure,
-    site_indices: Union[List[int], int] = [],
+    cell_structure: Structure, site_indices: Union[List[int], int] = []
 ) -> None:
     """Toggles subspecies grouping on the specified site indices. Sites not found in
     the list are labeled with the atomic species name.
@@ -70,19 +65,16 @@ def label_subspecies(
         site_indices = [site_indices]
 
     site_properties_subspecies: List[str] = get_subspecies_labels(
-        cell_structure=cell_structure.copy(),
-        site_indices=site_indices,
+        cell_structure=cell_structure.copy(), site_indices=site_indices
     )
 
     cell_structure.add_site_property(
-        property_name="subspecie",
-        values=site_properties_subspecies,
+        property_name="subspecie", values=site_properties_subspecies
     )
 
 
 def get_subspecies_labels(
-    cell_structure: Structure,
-    site_indices: List[int],
+    cell_structure: Structure, site_indices: List[int]
 ) -> List[Union[str, None]]:
     """Generates subspecies labels using the provided site indices. Sites not found in
     the list are labeled with the atomic species name.

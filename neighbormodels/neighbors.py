@@ -17,29 +17,24 @@ NeighborDistances = Dict[str, Union[List[str], List[float], List[int]]]
 
 
 class NeighborData(NamedTuple):
-    data_frame: DataFrame
-    bins_data_frame: DataFrame
+    neighbor_count: DataFrame
+    sublattice_pairs: DataFrame
     structure: Structure
 
 
-def count_neighbors(
-    cell_structure: Structure,
-    r: float,
-    unordered_pairs: bool = True,
-) -> NeighborData:
+def count_neighbors(cell_structure: Structure, r: float) -> NeighborData:
     """Builds a data frame containing neighbor counts grouped over site-index pairs
     and separation distances.
 
     :param cell_structure: A pymatgen ``Structure`` object.
     :param r: Radius of sphere.
-    :param unordered_pairs: Treat site-index pairs as unordered if True (default True).
     :return: A named tuple with three field names:
 
-        ``data_frame``
+        ``neighbor_count``
             A pandas ``DataFrame`` of neighbor counts aggregated over site-index pairs
             and separation distances.
 
-        ``bins_data_frame``
+        ``sublattice_pairs``
             A pandas ``DataFrame`` of neighbor distances mapped to unique bin
             intervals.
 
@@ -49,22 +44,57 @@ def count_neighbors(
     cell_structure = add_subspecie_labels_if_missing(cell_structure=cell_structure)
 
     neighbor_distances_df: DataFrame = get_neighbor_distances_data_frame(
-        cell_structure=cell_structure,
-        r=r,
-        unordered_pairs=unordered_pairs,
+        cell_structure=cell_structure, r=r
     )
 
-    distance_bins_df: DataFrame = neighbor_distances_df \
-        .pipe(define_bins_to_group_and_sort_by_distance)
+    distance_bins_df: DataFrame = neighbor_distances_df.pipe(
+        define_bins_to_group_and_sort_by_distance
+    )
 
-    neighbor_count_df: DataFrame = neighbor_distances_df \
-        .pipe(group_site_index_pairs_by_distance, distance_bins_df=distance_bins_df) \
-        .pipe(count_neighbors_within_distance_groups)
+    neighbor_count_df: DataFrame = neighbor_distances_df.pipe(
+        group_site_index_pairs_by_distance, distance_bins_df=distance_bins_df
+    ).pipe(count_neighbors_within_distance_groups).pipe(sort_neighbors_by_site_index_i)
+
+    sublattice_pairs_df: pd.DataFrame = neighbor_count_df.pipe(
+        sort_and_rank_unique_sublattice_pairs
+    )
 
     return NeighborData(
-        data_frame=neighbor_count_df,
-        bins_data_frame=distance_bins_df,
+        neighbor_count=neighbor_count_df,
+        sublattice_pairs=sublattice_pairs_df,
         structure=cell_structure,
+    )
+
+
+def sort_and_rank_unique_sublattice_pairs(data_frame: DataFrame) -> DataFrame:
+    """Group, sort, and rank unique subspecies_ij and distance_bin columns.
+
+    :param data_frame: A pandas ``DataFrame`` of pairwise neighbor distances.
+    :return: A pandas ``DataFrame`` of unique sublattice pairs.
+    """
+    subspecies_columns = ["subspecies_i", "subspecies_j"]
+    sublattice_columns = subspecies_columns + ["distance_bin"]
+
+    return (
+        data_frame.loc[:, sublattice_columns]
+        .drop_duplicates(subset=sublattice_columns)
+        .sort_values(sublattice_columns)
+        .assign(rank=lambda x: x.groupby(subspecies_columns).cumcount())
+        .reset_index(drop=True)
+    )
+
+
+def sort_neighbors_by_site_index_i(neighbor_count_df: DataFrame) -> DataFrame:
+    """Sort by site index i, then neighbor distances, then neighbor index j.
+
+    :param neighbor_count_df: A data frame of neighbor counts aggregated over
+        site-index pairs and separation distances.
+    :return: A pandas ``DataFrame`` of neighbor counts aggregated over site-index
+        pairs and separation distances sorted by site index i, then neighbor
+        distances, then neighbor index j.
+    """
+    return neighbor_count_df.sort_values(by=["i", "distance_bin", "j"]).reset_index(
+        drop=True
     )
 
 
@@ -78,16 +108,17 @@ def count_neighbors_within_distance_groups(
     :return: A pandas ``DataFrame`` of neighbor counts aggregated over site-index pairs
         and separation distances.
     """
-    return grouped_distances \
-        .apply(lambda x: pd.to_numeric(arg=x["distance_ij"].count(),
-                                       downcast="integer")) \
-        .rename("n") \
+    return (
+        grouped_distances.apply(
+            lambda x: pd.to_numeric(arg=x["distance_ij"].count(), downcast="integer")
+        )
+        .rename("n")
         .reset_index()
+    )
 
 
 def group_site_index_pairs_by_distance(
-    neighbor_distances_df: DataFrame,
-    distance_bins_df: DataFrame,
+    neighbor_distances_df: DataFrame, distance_bins_df: DataFrame
 ) -> DataFrameGroupBy:
     """Iterate over all sites, grouping by site-index pairs, subspecies pairs, and
     bin intervals.
@@ -99,12 +130,13 @@ def group_site_index_pairs_by_distance(
     :return: A data frame grouped over site-index pairs, subspecies pairs, and
         bin intervals.
     """
-    binned_distances: Series = \
-        pd.cut(x=neighbor_distances_df["distance_ij"], bins=distance_bins_df.index) \
-          .rename("distance_bin")
+    binned_distances: Series = pd.cut(
+        x=neighbor_distances_df["distance_ij"], bins=distance_bins_df.index
+    ).rename("distance_bin")
 
-    return neighbor_distances_df \
-        .groupby(["i", "j", "subspecies_i", "subspecies_j", binned_distances])
+    return neighbor_distances_df.groupby(
+        ["i", "j", "subspecies_i", "subspecies_j", binned_distances]
+    )
 
 
 def define_bins_to_group_and_sort_by_distance(
@@ -146,10 +178,9 @@ def find_unique_distances(distance_ij: Series) -> np.ndarray:
         np.isclose(unique_floats[1:], unique_floats[:-1])
     )
 
-    return np.concatenate((
-        unique_floats[:1],
-        unique_floats[1:][next_distance_not_close],
-    ))
+    return np.concatenate(
+        (unique_floats[:1], unique_floats[1:][next_distance_not_close])
+    )
 
 
 def define_bin_intervals(unique_distances: np.ndarray) -> IntervalIndex:
@@ -165,45 +196,37 @@ def define_bin_intervals(unique_distances: np.ndarray) -> IntervalIndex:
     """
     bin_centers: np.ndarray = np.concatenate(([0], unique_distances))
 
-    bin_edges: np.ndarray = np.concatenate([
-        bin_centers[:-1] + (bin_centers[1:] - bin_centers[:-1]) / 2,
-        bin_centers[-1:] + (bin_centers[-1:] - bin_centers[-2:-1]) / 2,
-    ])
+    bin_edges: np.ndarray = np.concatenate(
+        [
+            bin_centers[:-1] + (bin_centers[1:] - bin_centers[:-1]) / 2,
+            bin_centers[-1:] + (bin_centers[-1:] - bin_centers[-2:-1]) / 2,
+        ]
+    )
 
     return IntervalIndex.from_breaks(breaks=bin_edges)
 
 
-def get_neighbor_distances_data_frame(
-    cell_structure: Structure,
-    r: float,
-    unordered_pairs: bool,
-) -> DataFrame:
+def get_neighbor_distances_data_frame(cell_structure: Structure, r: float) -> DataFrame:
     """Get data frame of pairwise neighbor distances for each atom in the unit cell,
     out to a distance ``r``.
 
     :param cell_structure: A pymatgen ``Structure`` object.
     :param r: Radius of sphere.
-    :param unordered_pairs: Treat site-index pairs as unordered if True.
     :return: A pandas ``DataFrame`` of pairwise neighbor distances.
     """
     all_neighbors: AllNeighborDistances = cell_structure.get_all_neighbors(
-        r=r,
-        include_index=True,
+        r=r, include_index=True
     )
 
     neighbor_distances: NeighborDistances = extract_neighbor_distance_data(
-        cell_structure=cell_structure,
-        all_neighbors=all_neighbors,
-        unordered_pairs=unordered_pairs,
+        cell_structure=cell_structure, all_neighbors=all_neighbors
     )
 
     return DataFrame(data=neighbor_distances)
 
 
 def extract_neighbor_distance_data(
-    cell_structure: Structure,
-    all_neighbors: AllNeighborDistances,
-    unordered_pairs: bool,
+    cell_structure: Structure, all_neighbors: AllNeighborDistances
 ) -> NeighborDistances:
     """Extracts the site indices, site species, and neighbor distances for each pair
     and stores it in a dictionary.
@@ -211,7 +234,6 @@ def extract_neighbor_distance_data(
     :param cell_structure: A pymatgen ``Structure`` object.
     :param all_neighbors: A list of lists containing the neighbors for each site in
         the structure.
-    :param unordered_pairs: Treat site-index pairs as unordered if True.
     :return: A dictionary of site indices, site species, and neighbor distances for
         each pair.
     """
@@ -223,15 +245,12 @@ def extract_neighbor_distance_data(
         "distance_ij": [],
     }
 
-    site_i_index: int
-    site_i_neighbors: SiteNeighbors
     for site_i_index, site_i_neighbors in enumerate(all_neighbors):
         append_site_i_neighbor_distance_data(
             site_i_index=site_i_index,
             site_i_neighbors=site_i_neighbors,
             cell_structure=cell_structure,
             neighbor_distances=neighbor_distances,
-            unordered_pairs=unordered_pairs,
         )
 
     return neighbor_distances
@@ -242,7 +261,6 @@ def append_site_i_neighbor_distance_data(
     site_i_neighbors: SiteNeighbors,
     cell_structure: Structure,
     neighbor_distances: NeighborDistances,
-    unordered_pairs: bool,
 ) -> None:
     """Helper function to append indices, species, and distances in the
     ``neighbor_distances`` dictionary.
@@ -253,18 +271,14 @@ def append_site_i_neighbor_distance_data(
         structure.
     :param neighbor_distances: A dictionary of site indices, site species, and neighbor
         distances for each pair.
-    :param unordered_pairs: Treat site-index pairs as unordered if True.
     """
-    site_j: Neighbor
     for site_j in site_i_neighbors:
-        subspecies_pair: List[str] = sorted([
+        subspecies_pair: List[str] = [
             cell_structure[site_i_index].properties["subspecie"],
             cell_structure[site_j[2]].properties["subspecie"],
-        ])
+        ]
 
         index_pair: List[str] = [site_i_index, site_j[2]]
-        if unordered_pairs:
-            index_pair.sort()
 
         neighbor_distances["i"].append(index_pair[0])
         neighbor_distances["j"].append(index_pair[1])
