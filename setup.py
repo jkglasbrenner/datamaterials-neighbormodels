@@ -10,8 +10,8 @@ with open('README.rst', 'rt', encoding='utf8') as f:
     readme = f.read()
 
 name = "neighbormodels"
-version = "0.1"
-release = "0.1.0"
+version = "0.2"
+release = "0.2.0"
 
 setuptools.setup(
     name=name,
