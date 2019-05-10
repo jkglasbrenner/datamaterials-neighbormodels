@@ -71,7 +71,6 @@ def compute_interaction_signs(magnetic_patterns_df: DataFrame) -> DataFrame:
         .rename(columns={"site_i": "i", "site_j": "j"})
         .loc[:, ["pattern", "i", "j", "spin_i", "spin_j"]]
         .assign(sign=lambda x: x["spin_i"] * x["spin_j"])
-        .query("i <= j")
     )
 
 

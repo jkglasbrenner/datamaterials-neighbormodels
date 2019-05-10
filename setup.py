@@ -11,7 +11,7 @@ with open('README.rst', 'rt', encoding='utf8') as f:
 
 name = "neighbormodels"
 version = "0.2"
-release = "0.2.0"
+release = "0.2.1"
 
 setuptools.setup(
     name=name,
