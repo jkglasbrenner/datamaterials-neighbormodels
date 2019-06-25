@@ -245,7 +245,7 @@ def aggregate_interaction_coefficients(
     """
     return (
         data_frame.groupby(["pattern", "parameter_name"])
-        .apply(lambda x: np.sum(x[["coefficient"]]) / num_sites)
+        .apply(lambda x: np.sum(x[["coefficient"]]) / num_sites / 2)
         .reset_index()
         .sort_values(by=["pattern", "parameter_name"])
         .loc[:, ["pattern", "parameter_name", "coefficient"]]

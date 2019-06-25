@@ -6,12 +6,12 @@ from collections import OrderedDict
 import setuptools
 from sphinx.setup_command import BuildDoc
 
-with open('README.rst', 'rt', encoding='utf8') as f:
+with open("README.rst", "rt", encoding="utf8") as f:
     readme = f.read()
 
 name = "neighbormodels"
 version = "0.2"
-release = "0.2.1"
+release = "0.2.2"
 
 setuptools.setup(
     name=name,
